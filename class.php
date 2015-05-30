@@ -12,6 +12,12 @@
 *    self是对类本身的一个引用，一般用来指向类中的静态变量；
 *    parent是对父类的引用，一般使用parent来调用父类的构造函数。
 *    this后不加变量$, self后面加变量$
+*    array_unique(排重，key不变)
+*   array_chunk(按一定大小分组), 返回二维数组
+*    array_slice(取出一段，参数为负值表示从后面截取)
+*    array_merge(合并数组)
+*    array_intersect(交集，key不变)
+*    array_diff(差集)
 */
 
 /**
