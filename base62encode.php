@@ -1,6 +1,7 @@
-//将IP转换为整数，将整数进行base62encode
-
 <?php
+
+    //将IP转换为整数，将整数进行base62encode
+    //array_reverse str_split array_flip
 
     $chars = "0123456789abcdefghijklmnopoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     $val = 15011381805;
