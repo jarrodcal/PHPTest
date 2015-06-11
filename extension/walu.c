@@ -1,9 +1,10 @@
 #include "php_walu.h"
+#include "ext/standard/php_array.h"
 
 //ZEND_FUNCTION 是一个宏，展开后是void wali_hello(INTERNAL_FUNCTION_PARAMETERS)
 //#define INTERNAL_FUNCTION_PARAMETERS int ht, zval *return_value, zval **return_value_ptr, zval *this_ptr, int return_value_used TSRMLS_DC
 //巧妙的利用这几个参数，根据不同的情况进行使用
-//RETURN_STRING RETURN_LONG 
+//RETURN_STRING RETURN_LONG
 
 ZEND_FUNCTION(walu_hello)
 {
@@ -126,13 +127,76 @@ ZEND_FUNCTION(base62decode)
     RETURN_LONG(result);
 }
 
+static int php_sample_print_zval(zval **val TSRMLS_DC)
+{
+    zval tmpcopy = **val;
+    zval_copy_ctor(&tmpcopy);
+    
+    INIT_PZVAL(&tmpcopy);
+    php_printf("zval value is %u\n", tmpcopy.value);
+    
+    zval_dtor(&tmpcopy);
+    return ZEND_HASH_APPLY_KEEP;
+}
+
+//1. 采用内核提供的API。 2. 涉及到emalloc申请内存
+//以value数组进行组合，其值为空的不再组合在一起(区别于传统的array_combine)
+ZEND_FUNCTION(array_combine_ex)
+{
+    zval *values, *keys;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "aa", &keys, &values) == FAILURE)
+        RETURN_NULL();
+
+    long real_len = 0;
+    
+    array_init(return_value);
+
+    HashTable *hash1 = Z_ARRVAL_P(keys);
+    Bucket *p1 = hash1->pListHead;
+    zval **pp1zval;
+
+    HashTable *hash2 = Z_ARRVAL_P(values);
+    Bucket *p2 = hash2->pListHead;
+    zval **pp2zval;
+  
+    while (p1 && p2)
+    {
+        pp2zval = (zval**)p2->pData;
+        pp1zval = (zval**)p1->pData;
+
+        if (Z_TYPE_PP(pp2zval) != IS_STRING)
+            convert_to_string(*pp2zval);
+
+        if (Z_TYPE_PP(pp1zval) != IS_STRING)
+            convert_to_string(*pp1zval);
+            
+        if (Z_STRLEN_PP(pp2zval) > 0)
+            add_assoc_zval(return_value, Z_STRVAL_PP(pp1zval), *pp2zval);
+
+        p1 = p1->pListNext;
+        p2 = p2->pListNext;
+    }
+
+    return;
+}
+
+//Bucket 通过pListNext，pListLast串联数据，而pNext，PLast只有当hash到同一个值时才会有数据，但此时pListNext和pListLast已经有指向了
+//接收多个变量的传递， 使用aa
+ZEND_FUNCTION(getmax)
+{
+    RETURN_TRUE(0);
+}
+
 static zend_function_entry walu_functions[] = 
 {
-    ZEND_FE(walu_hello,     NULL)
-    ZEND_FE(sample_return,  NULL)
-    ZEND_FE(uniq_value,     NULL)
-    ZEND_FE(base62encode,   NULL)
-    ZEND_FE(base62decode,   NULL)
+    ZEND_FE(walu_hello,         NULL)
+    ZEND_FE(sample_return,      NULL)
+    ZEND_FE(uniq_value,         NULL)
+    ZEND_FE(base62encode,       NULL)
+    ZEND_FE(base62decode,       NULL)
+    ZEND_FE(getmax,             NULL)
+    ZEND_FE(array_combine_ex,   NULL)
     {NULL, NULL, NULL}
 };
 
