@@ -63,6 +63,7 @@ inline static void swapFun(char *result)
     }
 }
 
+//数字 = 商 * 62 + 余数,  原值 = 余数 * pow(62, n)
 ZEND_FUNCTION(base62encode)
 {
     char result[8] = {0};
