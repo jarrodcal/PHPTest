@@ -9,6 +9,7 @@
 		private $_user = "xxx";
 		private $_pwd = "xxxxxx";
 		
+		//声明为私有函数，外层无法直接创建对象
 		private function __construct()
 		{
 			$this->_handle = mysql_connect($this->_host, $this->_user, $this->_pwd);
