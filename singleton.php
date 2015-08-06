@@ -1,26 +1,56 @@
 <?php
-  
-  //共用类的静态变量得到实例化，通过私有变量访问相关资源, 应用于数据库链接，日志记录等一个业务线上
+	class Mysql
+	{
+		//必须声明为静态变量，这样访问者不用创建对象而可以直接访问
+		private static $_conn;
+		private $_handle;
 
-  class DatabaseConnection
-  {
-      private $_handle = null;
-      public static $db = null;
+		private $_host = "xxxx:10922";
+		private $_user = "xxx";
+		private $_pwd = "xxxxxx";
+		
+		private function __construct()
+		{
+			$this->_handle = mysql_connect($this->_host, $this->_user, $this->_pwd);
 
-      public static function get()
-      {
-            if ($db == null)
-                $db = new DatabaseConnection();
+			if (!$this->_handle)
+				die('Could not connect: ' . mysql_error());		
+		}
 
-            return $db->_handle;
-      }
+		public function __destruct()
+		{
+			if ($this->_handle)
+				mysql_close($this->_handle);
+		}
 
-      private function __construct()
-      {
-            $dsn = 'mysql://root:password@localhost/photos';
-            $this->_handle =& DB::Connect($dsn, array());
-      }
-  }
+		public static function getInstance()
+		{
+			if (!self::$_conn instanceof self)
+			{
+				self::$_conn = new self;
+			}
 
-  print("Handle = ".DatabaseConnection::get()."\n");
-  print("Handle = ".DatabaseConnection::get()."\n");
+			return self::$_conn;
+		}
+
+		public function __clone()
+		{
+			trigger_error("Clone not allow!");
+		}
+
+		public function query($sql)
+		{	
+			$rs = mysql_query($sql, $this->_handle);
+
+		 	while (($row=mysql_fetch_assoc($rs))!==false)
+			{
+			        print_r($row);
+			}
+
+			mysql_free_result($rs);			 
+		}
+	}
+
+	$mysql = Mysql::getInstance();
+	$sql = "SELECT * FROM `contact_0` . `user_phone_0` LIMIT 0, 10";
+	$mysql->query($sql);
